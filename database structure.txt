@@ -1,0 +1,18 @@
+❌ Wrong — multiple databases
+bpl_players_db
+bpl_matches_db
+bpl_payments_db
+
+✅ Correct — one database, many collections
+bpl_db/
+├── players
+├── teams
+├── matches
+├── tournaments
+├── auctions
+├── payments
+├── points_table
+├── live_scores
+├── gallery
+├── announcements
+└── admins

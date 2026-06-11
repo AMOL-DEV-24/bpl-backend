@@ -1,0 +1,279 @@
+/bpl-backend
+│
+├── src/
+│
+│   ├── app.ts
+│   │   // 🚀 Creates Express app instance
+│   │   // - Adds global middlewares (cors, json, helmet)
+│   │   // - Registers all API routes
+│   │   // - Central configuration of backend app
+│
+│   ├── server.ts
+│   │   // 🟢 Entry point of the application
+│   │   // - Connects MongoDB database
+│   │   // - Starts HTTP server on defined PORT
+│   │   // - Handles server startup logging
+│
+│
+│   ├── config/
+│   │
+│   │   ├── db.ts
+│   │   │   // 🗄️ MongoDB connection setup using Mongoose
+│   │   │   // - Handles connection retry logic
+│   │   │   // - Logs DB connection success/failure
+│   │
+│   │   ├── env.ts
+│   │   │   // 🔐 Loads and validates environment variables
+│   │   │   // - Ensures required keys exist (DB_URL, RAZORPAY_KEY)
+│   │   │   // - Prevents app crash due to missing config
+│   │
+│   │   ├── razorpay.ts
+│   │   │   // 💳 Razorpay SDK configuration
+│   │   │   // - Initializes Razorpay instance
+│   │   │   // - Used for payment order creation & verification
+│   │
+│   │   ├── cloudinary.ts
+│   │   │   // 🖼️ Cloudinary configuration for image uploads
+│   │   │   // - Used for storing player profile images
+│   │
+│   │   ├── cors.ts
+│   │   │   // 🌐 CORS configuration
+│   │   │   // - Restricts allowed frontend origins
+│   │   │   // - Protects backend from unauthorized requests
+│
+│
+│   ├── api/
+│   │
+│   │   ├── v1/
+│   │   │   ├── routes.ts
+│   │   │   │   // 🌐 Aggregates all module routes for API version 1
+│   │   │   │   // - Example: /api/v1/player, /match, /payment
+│   │
+│   │   ├── index.ts
+│   │   │   // 📦 Central API exporter
+│   │   │   // - Connects versioned routes to app.ts
+│
+│
+│   ├── modules/
+│   │
+│   │   ├── player/
+│   │   │
+│   │   │   ├── player.model.ts
+│   │   │   │   // 🧾 Defines Player MongoDB schema
+│   │   │   │   // - Stores personal + cricket stats + payment status
+│   │   │
+│   │   │   ├── player.controller.ts
+│   │   │   │   // 🎮 Handles incoming HTTP requests for player module
+│   │   │   │   // - Calls service layer and returns response
+│   │   │
+│   │   │   ├── player.service.ts
+│   │   │   │   // ⚙️ Business logic for player module
+│   │   │   │   // - Validates registration rules
+│   │   │   │   // - Ensures payment is completed before saving player
+│   │   │
+│   │   │   ├── player.routes.ts
+│   │   │   │   // 🛣️ Defines player API endpoints
+│   │   │   │   // - POST /register, GET /players
+│   │   │
+│   │   │   ├── player.repository.ts
+│   │   │   │   // 🗃️ Handles database operations only
+│   │   │   │   // - createPlayer, findPlayer, updatePlayer
+│   │   │
+│   │   │   ├── player.types.ts
+│   │   │   │   // 📘 TypeScript interfaces for Player data structure
+│
+│
+│   │   ├── match/
+│   │   │   ├── match.model.ts
+│   │   │   │   // 🧾 Stores match data (teams, score, status, venue)
+│   │   │
+│   │   │   ├── match.controller.ts
+│   │   │   │   // 🎮 Handles match API requests (create, update, fetch)
+│   │   │
+│   │   │   ├── match.service.ts
+│   │   │   │   // ⚙️ Match business logic
+│   │   │   │   // - Live score updates
+│   │   │   │   // - Match status flow (upcoming → live → completed)
+│   │   │
+│   │   │   ├── match.routes.ts
+│   │   │   │   // 🛣️ Match API endpoints
+│   │   │
+│   │   │   ├── match.repository.ts
+│   │   │   │   // 🗃️ Database operations for matches
+│   │   │
+│   │   │   ├── match.types.ts
+│   │   │   │   // 📘 Type definitions for match data
+│
+│
+│   │   ├── pointsTable/
+│   │   │   ├── points.model.ts
+│   │   │   │   // 🧾 Stores team ranking data (wins, losses, points)
+│   │   │   ├── points.controller.ts
+│   │   │   │   // 🎮 Handles points table API requests
+│   │   │   ├── points.service.ts
+│   │   │   │   // ⚙️ Calculates rankings and net run rate
+│   │   │   ├── points.routes.ts
+│   │   │   │   // 🛣️ Points table API endpoints
+│
+│
+│   │   ├── payment/
+│   │   │   ├── payment.model.ts
+│   │   │   │   // 🧾 Stores payment records (orderId, paymentId, status)
+│   │   │   ├── payment.controller.ts
+│   │   │   │   // 💳 Handles payment requests and verification
+│   │   │   ├── payment.service.ts
+│   │   │   │   // ⚙️ Payment logic using Razorpay
+│   │   │   │   // - Create order
+│   │   │   │   // - Verify signature
+│   │   │   │   // - Prevent fake registration
+│   │   │   ├── payment.routes.ts
+│   │   │   │   // 🛣️ Payment API endpoints
+│   │   │   ├── payment.webhook.ts
+│   │   │   │   // 🔔 Handles Razorpay webhook events
+│   │   │   │   // - Confirms payment success from Razorpay server
+│
+│
+│   │   ├── stats/
+│   │   │   ├── stats.model.ts
+│   │   │   │   // 📊 Stores player performance stats (runs, wickets, strike rate)
+│   │   │   ├── stats.controller.ts
+│   │   │   │   // 🎮 Handles stats API requests
+│   │   │   ├── stats.service.ts
+│   │   │   │   // ⚙️ Calculates player performance metrics
+│   │   │   ├── stats.routes.ts
+│   │   │   │   // 🛣️ Stats API endpoints
+│
+│
+│   │   ├── upload/
+│   │   │   ├── upload.controller.ts
+│   │   │   │   // 🖼️ Handles image upload requests
+│   │   │   ├── upload.service.ts
+│   │   │   │   // ⚙️ Upload logic (Cloudinary/S3 integration)
+│   │   │   ├── upload.routes.ts
+│   │   │   │   // 🛣️ Upload API endpoints
+│   │   │   ├── upload.utils.ts
+│   │   │   │   // 🧰 Helper functions for file processing
+│
+│
+│   ├── shared/
+│   │
+│   │   ├── utils/
+│   │   │   ├── razorpay.ts
+│   │   │   │   // 💳 Razorpay helper functions (signature verification)
+│   │   │   ├── cloudinary.ts
+│   │   │   │   // 🖼️ Upload helper functions
+│   │   │   ├── sms.ts
+│   │   │   │   // 📩 Sends SMS notifications (MSG91/Fast2SMS)
+│   │   │   ├── email.ts
+│   │   │   │   // 📧 Sends email confirmations
+│   │   │   ├── crypto.ts
+│   │   │   │   // 🔐 Security utilities (hashing, verification)
+│   │   │   ├── logger.ts
+│   │   │   │   // 🪵 Central logging system for debugging & monitoring
+│
+│   │   ├── middlewares/
+│   │   │   ├── error.middleware.ts
+│   │   │   │   // ❌ Global error handler (catches all backend errors)
+│   │   │   ├── validate.middleware.ts
+│   │   │   │   // 🧪 Validates request body using schema validation
+│   │   │   ├── auth.middleware.ts
+│   │   │   │   // 🔐 Protects routes (admin/user authentication)
+│   │   │   ├── rateLimit.middleware.ts
+│   │   │   │   // 🚦 Prevents API abuse (request limiting)
+│   │
+│   │   ├── constants/
+│   │   │   ├── messages.ts
+│   │   │   │   // 📢 Centralized success & error messages
+│   │   │   ├── app.constants.ts
+│   │   │   │   // ⚙️ Global constants (fees, limits, config values)
+│   │
+│   │   ├── types/
+│   │   │   ├── global.types.ts
+│   │   │   │   // 📘 Shared TypeScript types across modules
+│   │
+│   │   ├── interceptors/
+│   │   │   ├── response.interceptor.ts
+│   │   │   │   // 📦 Standard API response format handler
+│   │   │   │   // - Ensures all APIs return consistent structure
+│   │
+│   │   ├── guards/
+│   │   │   ├── admin.guard.ts
+│   │   │   │   // 🔐 Protects admin-only routes
+│   │
+│
+│   ├── jobs/
+│   │   ├── sms.job.ts
+│   │   │   // ⏰ Background job for sending SMS notifications
+│   │   ├── email.job.ts
+│   │   │   // ⏰ Background job for sending emails
+│   │   ├── payment.job.ts
+│   │   │   // ⏰ Handles payment retries and verification checks
+│
+│
+│   ├── queue/
+│   │   ├── queue.ts
+│   │   │   // 📬 Queue system (BullMQ / Redis)
+│   │   │   // - Handles background jobs efficiently
+│
+│
+│   ├── database/
+│   │   ├── seed.ts
+│   │   │   // 🌱 Inserts initial data (teams, matches, players)
+│   │   ├── migration.ts
+│   │   │   // 🔄 Handles database schema updates
+│
+│
+│   ├── health/
+│   │   ├── health.controller.ts
+│   │   │   // ❤️ Health check endpoint logic
+│   │   ├── health.routes.ts
+│   │   │   // 🛠️ API endpoint for server status (/health)
+│
+│
+│   ├── docs/
+│   │   ├── swagger.ts
+│   │   │   // 📘 API documentation setup (Swagger UI)
+│
+│
+│   ├── test/
+│   │   ├── unit/
+│   │   │   // 🧪 Unit tests for individual functions
+│   │   ├── integration/
+│   │   │   // 🧪 Integration tests for APIs
+│   │   ├── player.test.ts
+│   │   │   // 🧪 Player module test cases
+│   │   ├── payment.test.ts
+│   │   │   // 🧪 Payment flow test cases
+│
+│
+├── logs/
+│   ├── app.log
+│   │   // 🪵 Logs all normal application activity
+│   ├── error.log
+│   │   // ❌ Stores only error logs for debugging
+│
+│
+├── uploads/
+│   // 🖼️ Temporary file storage (used before Cloudinary upload)
+│
+│
+├── .env
+│   // 🔐 Stores sensitive keys (DB, Razorpay, SMS, Email)
+│
+├── .env.example
+│   // 📦 Example environment file for setup reference
+│
+├── Dockerfile
+│   // 🐳 Container setup for deploying backend in production
+│
+├── docker-compose.yml
+│   // 🐳 Runs backend + database together in containers
+│
+├── package.json
+│   // 📦 Project dependencies + scripts
+│
+├── tsconfig.json
+│   // ⚙️ TypeScript configuration settings
+│
+└── README.md
+    // 📘 Full project documentation (setup + usage guide)
