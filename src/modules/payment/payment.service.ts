@@ -3,17 +3,25 @@ import { verifyRazorpaySignature } from "../../shared/utils/razorpay";
 import { VerifyPaymentPayload } from "./payment.types";
 import { Payment } from "./payment.model";
 
+/**
+ * =========================
+ * CREATE ORDER SERVICE
+ * =========================
+ */
 export const createOrderService = async (email: string) => {
+  const amount = Number(process.env.RAZORPAY_AMOUNT ?? 1000);
+  const currency = process.env.RAZORPAY_CURRENCY ?? "INR";
+
   const order = await razorpayInstance.orders.create({
-    amount: Number(process.env.RAZORPAY_AMOUNT) || 1000, // ₹10
-    currency: process.env.RAZORPAY_CURRENCY || "INR",
+    amount,
+    currency,
     receipt: `bpl_${Date.now()}`,
   });
 
-  // ✅ Save order to DB immediately
+  // Save order in DB (initial state)
   await Payment.create({
     orderId: order.id,
-    amount: 1000,
+    amount,
     playerEmail: email,
     status: "created",
   });
@@ -21,21 +29,44 @@ export const createOrderService = async (email: string) => {
   return order;
 };
 
-// ✅ Now async + saves to DB on success
-export const verifyPaymentService = async (payload: VerifyPaymentPayload) => {
+/**
+ * =========================
+ * VERIFY PAYMENT SERVICE
+ * =========================
+ */
+export const verifyPaymentService = async (
+  payload: VerifyPaymentPayload
+) => {
+  const {
+    razorpay_order_id,
+    razorpay_payment_id,
+    razorpay_signature,
+  } = payload;
+
   const isValid = verifyRazorpaySignature(
-    payload.razorpay_order_id,
-    payload.razorpay_payment_id,
-    payload.razorpay_signature,
+    razorpay_order_id,
+    razorpay_payment_id,
+    razorpay_signature
   );
 
-  if (!isValid) return false;
+  if (!isValid) {
+    return false;
+  }
 
-  // ✅ Mark payment as paid in DB
-  await Payment.findOneAndUpdate(
-    { orderId: payload.razorpay_order_id },
-    { paymentId: payload.razorpay_payment_id, status: "paid" },
+  // Update payment record
+  const updated = await Payment.findOneAndUpdate(
+    { orderId: razorpay_order_id },
+    {
+      paymentId: razorpay_payment_id,
+      status: "paid",
+    },
+    { new: true }
   );
+
+  // extra safety check
+  if (!updated) {
+    throw new Error("Payment record not found in DB");
+  }
 
   return true;
 };

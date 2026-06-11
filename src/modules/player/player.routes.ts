@@ -1,18 +1,38 @@
-import { Router } from "express";
+import express from "express";
+
 import {
   createPlayer,
   getAllPlayers,
   getApprovedPlayers,
   approvePlayer,
   rejectPlayer,
-} from "./players.controller";
+} from "./player.controller";
 
-const router = Router();
+const router = express.Router();
 
-router.post("/register",          createPlayer);
-router.get("/",                   getAllPlayers);       // BPL Hub admin
-router.get("/approved",           getApprovedPlayers); // BPL Official
-router.patch("/:id/approve",      approvePlayer);      // BPL Hub admin
-router.patch("/:id/reject",       rejectPlayer);       // BPL Hub admin
+router.post(
+  "/register",
+  createPlayer
+);
+
+router.get(
+  "/all",
+  getAllPlayers
+);
+
+router.get(
+  "/approved",
+  getApprovedPlayers
+);
+
+router.patch(
+  "/:id/approve",
+  approvePlayer
+);
+
+router.patch(
+  "/:id/reject",
+  rejectPlayer
+);
 
 export default router;
