@@ -1,0 +1,46 @@
+USER                    FRONTEND              BACKEND              RAZORPAY
+ │                          │                    │                     │
+ │  clicks Register & Pay   │                    │                     │
+ │─────────────────────────▶│                    │                     │
+ │                          │  POST /create-order│                     │
+ │                          │───────────────────▶│                     │
+ │                          │                    │  create order API   │
+ │                          │                    │────────────────────▶│
+ │                          │                    │  returns order_id   │
+ │                          │                    │◀────────────────────│
+ │                          │  { order_id,       │                     │
+ │                          │    amount }        │                     │
+ │                          │◀───────────────────│                     │
+ │                          │                    │                     │
+ │   Razorpay modal opens   │                    │                     │
+ │◀─────────────────────────│                    │                     │
+ │                          │                    │                     │
+ │  scans QR / pays UPI     │                    │                     │
+ │─────────────────────────────────────────────────────────────────── ▶│
+ │                          │                    │                     │
+ │                          │  payment response  │                     │
+ │                          │◀──────────────────────────────────────── │
+ │                          │  {                 │                     │
+ │                          │   razorpay_order_id│                     │
+ │                          │   razorpay_payment_id                    │
+ │                          │   razorpay_signature                     │
+ │                          │  }                 │                     │
+ │                          │                    │                     │
+ │                          │  POST /verify      │                     │
+ │                          │───────────────────▶│                     │
+ │                          │                    │ verify signature    │
+ │                          │                    │ (crypto, no API)    │
+ │                          │                    │                     │
+ │                          │                    │ update DB → "paid"  │
+ │                          │  { success: true } │                     │
+ │                          │◀───────────────────│                     │
+ │                          │                    │                     │
+ │                          │  POST /register    │                     │
+ │                          │───────────────────▶│                     │
+ │                          │                    │ check DB payment    │
+ │                          │                    │ status === "paid"   │
+ │                          │                    │ create player       │
+ │                          │  { success: true } │                     │
+ │                          │◀───────────────────│                     │
+ │  "Awaiting approval" ✅  │                    │                     │
+ │◀─────────────────────────│                    │                     │
